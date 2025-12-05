@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1002940183133",
+    "project_id": "nursingpdq",
+    "storage_bucket": "nursingpdq.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1002940183133:android:461a23157b59d97f08d3b4",
+        "android_client_info": {
+          "package_name": "com.kauvery.nursingpdq"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDm5uw6GFc6BT8I4xJ0lcSdxltgaoJnp7k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

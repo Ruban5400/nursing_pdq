@@ -2,7 +2,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:nursingpdq/screens/home.dart';
-import 'package:nursingpdq/screens/splash_screen.dart';
+import 'package:nursingpdq/screens/splash_screen.dart' hide auth;
 import 'package:provider/provider.dart';
 import '../models/questions_model.dart';
 import '../data/questions_list.dart' show questions, deps;
@@ -508,101 +508,112 @@ class _DynamicPatientFormPageState extends State<DynamicPatientFormPage> {
   @override
   Widget build(BuildContext context) {
     // Create a small snapshot of only visible questions to avoid empty gaps
-    final visibleQuestions = _questions
-        .where((q) => _isVisible(q.key))
-        .toList();
+    final visibleQuestions = _questions.where((q) => _isVisible(q.key)).toList();
 
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 173, 23, 143),
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: const Center(
-          child: Text(
-            'Patient Form',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-        ),
-        centerTitle: true,
-        elevation: 5,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
-            onPressed: () => auth.logOut(context),
-          ),
-        ],
-      ),
-      body: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Form(
-              key: _formKey,
-              child: ListView.separated(
-                // +1 for the submit button at the end
-                itemCount: visibleQuestions.length + 1,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
-                itemBuilder: (ctx, i) {
-                  if (i == visibleQuestions.length) {
-                    return ElevatedButton(
-                      onPressed: _onSubmit,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14.0),
-                        backgroundColor: const Color.fromARGB(
-                          255,
-                          173,
-                          23,
-                          143,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text(
-                        'Submit Form',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    );
-                  }
+    return LayoutBuilder(builder: (context, constraints) {
+      final maxWidth = constraints.maxWidth;
+      // breakpoints: phone < 600, tablet 600-1024, desktop > 1024
+      final bool isTabletOrDesktop = maxWidth >= 600;
+      // desired content width: 60% on tablet/desktop, full width on mobile
+      final double contentWidth = isTabletOrDesktop ? (maxWidth * 0.6) : maxWidth;
+      final horizontalPadding = isTabletOrDesktop ? 24.0 : 12.0;
 
-                  final q = visibleQuestions[i];
-
-                  // optional: wrap each question in a card-like container for nicer UI
-                  return Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.grey.shade200),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.03),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: _buildQuestionWidget(q),
-                  );
-                },
-              ),
+      return Scaffold(
+        appBar: AppBar(
+          backgroundColor: const Color.fromARGB(255, 173, 23, 143),
+          iconTheme: const IconThemeData(color: Colors.white),
+          title: const Center(
+            child: Text(
+              'Patient Form',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
             ),
           ),
-          if (_submitting)
-            Positioned.fill(
-              child: AbsorbPointer(
-                absorbing: true,
-                child: Container(
-                  color: Colors.black.withOpacity(0.45),
-                  child: const Center(child: CircularProgressIndicator()),
+          centerTitle: true,
+          elevation: 5,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.logout, color: Colors.white),
+              onPressed: () => auth.logOut(context),
+            ),
+          ],
+        ),
+        body: Stack(
+          children: [
+            // Center the form area and cap its width to contentWidth
+            Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  // don't exceed screen width minus some padding
+                  maxWidth: contentWidth,
+                ),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 12),
+                  child: Form(
+                    key: _formKey,
+                    child: ListView.separated(
+                      // +1 for the submit button at the end
+                      itemCount: visibleQuestions.length + 1,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (ctx, i) {
+                        if (i == visibleQuestions.length) {
+                          return ElevatedButton(
+                            onPressed: _onSubmit,
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14.0),
+                              backgroundColor: const Color.fromARGB(255, 173, 23, 143),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            child: const Text(
+                              'Submit Form',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          );
+                        }
+
+                        final q = visibleQuestions[i];
+
+                        // optional: wrap each question in a card-like container for nicer UI
+                        return Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.grey.shade200),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.03),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: _buildQuestionWidget(q),
+                        );
+                      },
+                    ),
+                  ),
                 ),
               ),
             ),
-        ],
-      ),
-    );
+
+            if (_submitting)
+              Positioned.fill(
+                child: AbsorbPointer(
+                  absorbing: true,
+                  child: Container(
+                    color: Colors.black.withOpacity(0.45),
+                    child: const Center(child: CircularProgressIndicator()),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      );
+    });
   }
+
 }

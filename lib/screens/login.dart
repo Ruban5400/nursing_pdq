@@ -56,7 +56,7 @@ class _LoginState extends State<Login> {
 
     final uid = _userIdController.text.trim();
     final pass = _passController.text.trim();
-    final unit = _selectedUnit;
+    final unit = _userUnitController.text.trim();
 
     bool hasError = false;
 
@@ -77,6 +77,8 @@ class _LoginState extends State<Login> {
 
     if (hasError) return;
     setState(() => status = true);
+
+    print('5400 -=-=-=>>> uid-$uid, pass-$pass, unit-$unit');
 
     String loginResponse = await AuthController().login(uid, pass, unit);
     setState(() => status = false);
@@ -209,9 +211,21 @@ class _LoginState extends State<Login> {
                                     )
                                         .toList(),
                                     onChanged: (v) {
+                                      final Map<String, String> unitMap = {
+                                        'KTN - Tennur': 'Trichy - Tennur',
+                                        'KCN - Cantonment': 'Trichy - Cantonment',
+                                        'KHC - Heartcity': 'Trichy - Heart City',
+                                        'KCH - Chennai Alwarpet': 'Chennai - Alwarpet',
+                                        'KHO - Hosur': 'Hosur',
+                                        'KHS - Salem': 'Salem',
+                                        'KTV - Tirunelveli': 'Tirunelveli',
+                                        'KVP - Vadapalani': 'Vadapalani',
+                                        'KMA - Maa Kauvery': 'Trichy - Maa Kauvery',
+                                      };
+
                                       setState(() {
                                         _selectedUnit = v;
-                                        _userUnitController.text = v ?? "";
+                                        _userUnitController.text = unitMap[v] ?? "";
                                         unitError = null;
                                       });
                                     },

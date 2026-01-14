@@ -1,9 +1,7 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:nursingpdq/screens/login.dart';
 import 'package:nursingpdq/screens/splash_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -81,6 +79,7 @@ class AuthController {
       Map<String, String> payload = {
         "type": "getIPOP",
         "unit": userLocation,
+        // "unit": 'Trichy - Cantonment',
         "ipop_no": barcodeScanResult,
       };
 
@@ -100,7 +99,7 @@ class AuthController {
 
       return patientData;
     } catch (err) {
-      return 'Server Error';
+      return {'Error' : 'Server Error'};
     }
   }
 

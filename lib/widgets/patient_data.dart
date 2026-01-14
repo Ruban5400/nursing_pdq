@@ -62,6 +62,7 @@ class _PatientDetailsPageState extends State<PatientDetailsPage> {
     final gender = patient?['gender']?.toString() ?? '';
     final attender = patient?['attender_contactno']?.toString() ?? '';
     final ward = patient?['ward']?.toString() ?? '';
+    final doctorName = patient?['primary_doctor']?.toString() ?? '';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -139,6 +140,9 @@ class _PatientDetailsPageState extends State<PatientDetailsPage> {
         infoRow('👨‍👩‍👧', 'Attender Contact', attender),
         const Divider(),
         infoRow('🏥', 'Ward', ward),
+        const Divider(),
+        infoRow('👨‍⚕️', 'Doctor Name', doctorName),
+
       ],
     );
   }

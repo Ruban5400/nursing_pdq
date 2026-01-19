@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
@@ -115,11 +116,18 @@ class RemoteService {
         headers: apiHeaders,
         body: jsonEncode(apiBody),
       );
-      Map<String, dynamic> result = jsonDecode(response.body);
-      print('5400 -=-=-=-= result $result');
-      return result;
+
+      try {
+        Map<String, dynamic> patientRes = jsonDecode(response.body);
+        var ipNo =
+            patientRes['result'][0]['result']['row'][0]['ip_op_no'] ?? '';
+
+        return ipNo != '' ? patientRes : {'result': 'false'};
+      } catch (err) {
+        return {'result': 'false'};
+      }
     } catch (err) {
-      return "Please try again later 2";
+      return {'result': err};
     }
   }
 

@@ -79,7 +79,6 @@ class AuthController {
       Map<String, String> payload = {
         "type": "getIPOP",
         "unit": userLocation,
-        // "unit": 'Trichy - Cantonment',
         "ipop_no": barcodeScanResult,
       };
 
@@ -89,7 +88,9 @@ class AuthController {
         payload,
       );
 
+
       final Map<String, dynamic> json = patientResponse as Map<String, dynamic>;
+
 
       final List<dynamic> resultList = json['result'];
       final Map<String, dynamic> innerResult = resultList[0]['result'];

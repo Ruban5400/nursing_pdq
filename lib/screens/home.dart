@@ -41,36 +41,118 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  // Future<void> scanner() async {
+  //   await services.getRefreshToken();
+  //   final patientProvider = Provider.of<PatientProvider>(
+  //     context,
+  //     listen: false,
+  //   );
+  //
+  //   // scan QR
+  //   await Navigator.of(context).push(
+  //     MaterialPageRoute(
+  //       builder: (context) => QRScannerPage(
+  //         onScanComplete: (String barcodeScanRes) async {
+  //           if (barcodeScanRes.isNotEmpty) {
+  //             var patientDetails = await auth.getPatientInfo(
+  //               userUnit,
+  //               barcodeScanRes,
+  //             );
+  //
+  //             if (patientDetails['Error'] != 'Server Error') {
+  //               // Save directly to Provider
+  //               patientProvider.setPatient(patientDetails);
+  //
+  //               if (!mounted) return;
+  //               setState(() {
+  //                 showPatientDetails = true;
+  //               });
+  //             } else {
+  //               if (!mounted) return;
+  //
+  //               showDialog(
+  //                 context: context,
+  //                 barrierDismissible: false,
+  //                 builder: (context) {
+  //                   return AlertDialog(
+  //                     title: const Text('Response'),
+  //                     content: const Text('No Records available'),
+  //                     actions: [
+  //                       TextButton(
+  //                         onPressed: () {
+  //                           Navigator.of(context).pop();
+  //                         },
+  //                         child: const Text('OK'),
+  //                       ),
+  //                     ],
+  //                   );
+  //                 },
+  //               );
+  //             }
+  //           }
+  //         },
+  //       ),
+  //     ),
+  //   );
+  //
+  //
+  // }
+
   Future<void> scanner() async {
+    if (!mounted) return;
+    final homeContext = context;
+
     await services.getRefreshToken();
-    final patientProvider = Provider.of<PatientProvider>(
-      context,
-      listen: false,
-    );
 
-    await Navigator.of(context).push(
+    final patientProvider =
+    Provider.of<PatientProvider>(homeContext, listen: false);
+
+    await Navigator.of(homeContext).push(
       MaterialPageRoute(
-        builder: (context) => QRScannerPage(
+        builder: (_) => QRScannerPage(
           onScanComplete: (String barcodeScanRes) async {
-            if (barcodeScanRes.isNotEmpty) {
-              var patientDetails = await auth.getPatientInfo(
-                userUnit,
-                barcodeScanRes,
-              );
+            if (barcodeScanRes.isEmpty) return;
 
-              // Save directly to Provider
+            final patientDetails = await auth.getPatientInfo(
+              userUnit,
+              barcodeScanRes,
+            );
+
+            if (!mounted) return;
+
+            if (patientDetails['Error'] != 'Server Error') {
               patientProvider.setPatient(patientDetails);
 
-              if (!mounted) return;
               setState(() {
                 showPatientDetails = true;
               });
+            } else {
+              // ⛔ Double safety
+              if (!homeContext.mounted) return;
+
+              showDialog(
+                context: homeContext,
+                barrierDismissible: false,
+                builder: (_) => AlertDialog(
+                  title: const Text('Response'),
+                  content: const Text('No Records available'),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(homeContext).pop();
+                      },
+                      child: const Text('OK'),
+                    ),
+                  ],
+                ),
+              );
             }
           },
         ),
       ),
     );
   }
+
 
   void _logout() => auth.logOut(context);
 
@@ -90,7 +172,10 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.primaryColor,
         automaticallyImplyLeading: false,
-        title: const Text('Nursing PDQ', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        title: const Text(
+          'Nursing PDQ',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
         centerTitle: true,
         elevation: 5,
         actions: [
@@ -108,37 +193,36 @@ class _HomeScreenState extends State<HomeScreen> {
               constraints: BoxConstraints(maxWidth: isDesktop ? 1200 : 900),
               child: isDesktop
                   ? Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // LEFT: user card + small controls
-                  SizedBox(
-                    width: leftWidth,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildUserCard(),
-                        const SizedBox(height: 12),
-                        if(showPatientDetails)
-                        _buildQuickActionsCard(),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 20),
+                        // LEFT: user card + small controls
+                        SizedBox(
+                          width: leftWidth,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _buildUserCard(),
+                              const SizedBox(height: 12),
+                              if (showPatientDetails) _buildQuickActionsCard(),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 20),
 
-                  // RIGHT: main content (QR / Patient details)
-                  Expanded(child: _buildMainArea(isTablet)),
-                ],
-              )
+                        // RIGHT: main content (QR / Patient details)
+                        Expanded(child: _buildMainArea(isTablet)),
+                      ],
+                    )
                   : SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildUserCard(),
-                    const SizedBox(height: 12),
-                    _buildMainArea(isTablet),
-                  ],
-                ),
-              ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildUserCard(),
+                          const SizedBox(height: 12),
+                          _buildMainArea(isTablet),
+                        ],
+                      ),
+                    ),
             ),
           ),
         ),
@@ -164,28 +248,52 @@ class _HomeScreenState extends State<HomeScreen> {
                 CircleAvatar(
                   radius: 30,
                   backgroundColor: AppColors.primaryColor.withOpacity(0.1),
-                  child: Icon(Icons.person, color: Colors.black.withOpacity(0.8), size: 32),
+                  child: Icon(
+                    Icons.person,
+                    color: Colors.black.withOpacity(0.8),
+                    size: 32,
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(children: [
-                        const Text("🪪", style: TextStyle(fontSize: 24)),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(userId, style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 16), overflow: TextOverflow.ellipsis),
-                        ),
-                      ]),
+                      Row(
+                        children: [
+                          const Text("🪪", style: TextStyle(fontSize: 24)),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              userId,
+                              style: const TextStyle(
+                                color: Colors.black87,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: 6),
-                      Row(children: [
-                        const Text("🏢", style: TextStyle(fontSize: 24)),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(userUnit, style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w600, fontSize: 16), overflow: TextOverflow.ellipsis),
-                        ),
-                      ]),
+                      Row(
+                        children: [
+                          const Text("🏢", style: TextStyle(fontSize: 24)),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              userUnit,
+                              style: const TextStyle(
+                                color: Colors.black87,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -207,14 +315,30 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             TextButton.icon(
               onPressed: scanner,
-              icon: const Icon(Icons.qr_code_scanner, color: AppColors.primaryColor),
-              label: const Text('Scan Patient', style: TextStyle(color: Colors.black87)),
+              icon: const Icon(
+                Icons.qr_code_scanner,
+                color: AppColors.primaryColor,
+              ),
+              label: const Text(
+                'Scan Patient',
+                style: TextStyle(color: Colors.black87),
+              ),
             ),
             const Divider(),
             TextButton.icon(
-              onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const DynamicPatientFormPage())),
-              icon: const Icon(Icons.upload_file, color: AppColors.primaryColor),
-              label: const Text('New Patient Form', style: TextStyle(color: Colors.black87)),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const DynamicPatientFormPage(),
+                ),
+              ),
+              icon: const Icon(
+                Icons.upload_file,
+                color: AppColors.primaryColor,
+              ),
+              label: const Text(
+                'New Patient Form',
+                style: TextStyle(color: Colors.black87),
+              ),
             ),
           ],
         ),
@@ -234,9 +358,11 @@ class _HomeScreenState extends State<HomeScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (showPatientDetails && hasPatient)
-        // Patient details area
+          // Patient details area
           Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             color: Colors.white,
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
@@ -248,23 +374,36 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           )
         else
-        // QR Scanner card (tap anywhere to start)
+          // QR Scanner card (tap anywhere to start)
           InkWell(
             onTap: scanner,
             child: Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
               child: Container(
                 width: double.infinity,
                 height: 320,
-                decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: Colors.white),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: Colors.white,
+                ),
                 child: Center(
                   child: Padding(
                     padding: const EdgeInsets.all(12.0),
-                    child: LayoutBuilder(builder: (context, constraints) {
-                      final w = constraints.maxWidth;
-                      final animationWidth = w < 360 ? w * 0.8 : (w * 0.6).clamp(180.0, 420.0);
-                      return Lottie.asset('assets/lottie/qrScan.json', width: animationWidth, fit: BoxFit.contain);
-                    }),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final w = constraints.maxWidth;
+                        final animationWidth = w < 360
+                            ? w * 0.8
+                            : (w * 0.6).clamp(180.0, 420.0);
+                        return Lottie.asset(
+                          'assets/lottie/qrScan.json',
+                          width: animationWidth,
+                          fit: BoxFit.contain,
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),
@@ -284,23 +423,29 @@ class _HomeScreenState extends State<HomeScreen> {
             backgroundColor: Colors.white,
             heroTag: 'scanner',
             onPressed: scanner,
-            child: const Icon(Icons.document_scanner_outlined, color: AppColors.primaryColor),
+            child: const Icon(
+              Icons.document_scanner_outlined,
+              color: AppColors.primaryColor,
+            ),
           ),
           const SizedBox(width: 12),
           FloatingActionButton(
             backgroundColor: AppColors.primaryColor,
             heroTag: 'patient_form',
             onPressed: () {
-              Navigator.of(context).push(MaterialPageRoute(builder: (_) => const DynamicPatientFormPage()));
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const DynamicPatientFormPage(),
+                ),
+              );
             },
             child: const Icon(Icons.arrow_forward_rounded, color: Colors.white),
           ),
         ],
       );
-    }
-    else {
+    } else {
       return SizedBox();
-        FloatingActionButton(
+      FloatingActionButton(
         backgroundColor: AppColors.primaryColor,
         heroTag: 'scan_only',
         onPressed: scanner,

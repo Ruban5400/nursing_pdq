@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -6,6 +7,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 import '../constants/api.dart';
+import '../screens/dummy.dart';
 
 const Map refreshTokenBody = {
   "Username": "Kauvery",
@@ -108,46 +110,43 @@ class RemoteService {
     return jsonData;
   }
 
-  Future<Object> postDataFromApi(apiPath, apiHeaders, apiBody) async {
+  Future<Map<String, dynamic>> postDataFromApi(
+    String apiPath,
+    Map<String, String> headers,
+    Map<String, dynamic> body,
+  ) async {
+    final uri = Uri.parse(apiPath);
+    final http.Response response;
     try {
-      final uri = Uri.parse(apiPath);
-      var response = await http.post(
-        uri,
-        headers: apiHeaders,
-        body: jsonEncode(apiBody),
-      );
-
-      try {
-        Map<String, dynamic> patientRes = jsonDecode(response.body);
-        var ipNo =
-            patientRes['result'][0]['result']['row'][0]['ip_op_no'] ?? '';
-
-        return ipNo != '' ? patientRes : {'result': 'false'};
-      } catch (err) {
-        return {'result': 'false'};
-      }
-    } catch (err) {
-      return {'result': err};
+      response = await http
+          .post(uri, headers: headers, body: jsonEncode(body))
+          .timeout(const Duration(seconds: 15));
+    } on SocketException {
+      throw const ApiException.network();
+    } on TimeoutException {
+      throw const ApiException.timeout();
     }
-  }
 
-  //
-  // logOut() async {
-  //   try {
-  //     final uri = Uri.parse('$baseUrl/v2/logout');
-  //     var response = await http.post(
-  //       uri,
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         'Accept': 'application/json',
-  //         'Authorization': 'Bearer ${loginDetails["token"]}',
-  //       },
-  //     );
-  //
-  //     return response;
-  //   } catch (err) {
-  //     Get.to(const ErrorPage());
-  //     return "Please try again later 4";
-  //   }
-  // }
+    final Map<String, dynamic> json;
+    try {
+      json = jsonDecode(response.body) as Map<String, dynamic>;
+    } catch (_) {
+      throw ApiException.serverError(
+        'Unexpected response format (status ${response.statusCode})',
+      );
+    }
+
+    // Auth error — comes back as 200 with a "Message" key
+    if (json.containsKey('Message')) {
+      final msg = json['Message'] as String? ?? '';
+      if (msg.toLowerCase().contains('authorization') ||
+          msg.toLowerCase().contains('denied')) {
+        throw const ApiException.unauthorized();
+      }
+      // Any other "Message" key means no data / business-level error
+      throw ApiException.noRecords(msg);
+    }
+
+    return json;
+  }
 }

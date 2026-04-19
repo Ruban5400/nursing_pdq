@@ -6,8 +6,8 @@ class ApiList {
       'https://${domainName}/etiicoshms/token';
   static const String loginApi =
       'https://${domainName}/etiicoshms/api/Values/Login';
-  static const String getLocationsApi =
-      'https://${domainName}/etiicoshms/api/Values/GetLocationInfo';
+  // static const String getLocationsApi =
+  //     'https://${domainName}/etiicoshms/api/Values/GetLocationInfo';
   static const String getPatientDetailsApi =
       'https://${domainName}/etiicoshms/api/Values/GetPatientInfo';
   static final String sendPatientForm =

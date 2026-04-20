@@ -32,7 +32,22 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (isConnected) {
       await services.getRefreshToken();
-      List<String> locations = await auth.getLocation();
+      // List<String> locations = await auth.getLocation();
+      // print('5400 -=-=- >>> $locations');
+      // 5400 -=-=- >>> [Chennai - Alwarpet, Electroniccity, Hosur, Kauvery 24/7 Clinic Porur, Marathahalli, Radial Road, Salem, Tirunelveli,
+      // Trichy - Cantonment, Trichy - Heart City, Trichy - Maa Kauvery, Trichy - Tennur, Vadapalani]
+
+      List<String> locations = [
+        'KTN - Tennur',
+        'KCN - Cantonment',
+        'KHC - Heartcity',
+        'KCH - Chennai Alwarpet',
+        'KHO - Hosur',
+        'KHS - Salem',
+        'KTV - Tirunelveli',
+        'KVP - Vadapalani',
+        'KMA - Maa Kauvery',
+      ];
       final prefs = await SharedPreferences.getInstance();
       final userUid = prefs.getBool('isLoggedIn');
       if (mounted) {

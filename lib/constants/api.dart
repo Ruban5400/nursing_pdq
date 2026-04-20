@@ -1,12 +1,15 @@
 class ApiList {
+  static const domainName = 'chennaihms.kauverykonnect.com';
+  // static const domainName = 'unfydcrm.kauveryhospital.com';
+
   static const String refreshTokenApi =
-      'https://unfydcrm.kauveryhospital.com/etiicoshms/token';
+      'https://${domainName}/etiicoshms/token';
   static const String loginApi =
-      'https://unfydcrm.kauveryhospital.com/etiicoshms/api/Values/Login';
-  static const String getLocationsApi =
-      'https://unfydcrm.kauveryhospital.com/etiicoshms/api/Values/GetLocationInfo';
+      'https://${domainName}/etiicoshms/api/Values/Login';
+  // static const String getLocationsApi =
+  //     'https://${domainName}/etiicoshms/api/Values/GetLocationInfo';
   static const String getPatientDetailsApi =
-      'https://unfydcrm.kauveryhospital.com/etiicoshms/api/Values/GetPatientInfo';
+      'https://${domainName}/etiicoshms/api/Values/GetPatientInfo';
   static final String sendPatientForm =
       'https://cccm.kauverykonnect.com/api/v1/store-pdqform-entires';
 }

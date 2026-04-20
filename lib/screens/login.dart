@@ -35,8 +35,21 @@ class _LoginState extends State<Login> {
   @override
   void initState() {
     super.initState();
-    _selectedUnit = units.first;
-    _userUnitController.text = _selectedUnit!;
+
+    final Map<String, String> unitMap = {
+      'KTN - Tennur': 'Trichy - Tennur',
+      'KCN - Cantonment': 'Trichy - Cantonment',
+      'KHC - Heartcity': 'Trichy - Heart City',
+      'KCH - Chennai Alwarpet': 'Chennai - Alwarpet',
+      'KHO - Hosur': 'Hosur',
+      'KHS - Salem': 'Salem',
+      'KTV - Tirunelveli': 'Tirunelveli',
+      'KVP - Vadapalani': 'Vadapalani',
+      'KMA - Maa Kauvery': 'Trichy - Maa Kauvery',
+    };
+
+    _selectedUnit = units.isNotEmpty ? units.first : null;
+    _userUnitController.text = unitMap[_selectedUnit] ?? _selectedUnit ?? '';
   }
 
   @override
@@ -56,7 +69,7 @@ class _LoginState extends State<Login> {
 
     final uid = _userIdController.text.trim();
     final pass = _passController.text.trim();
-    final unit = _selectedUnit;
+    final unit = _userUnitController.text.trim();
 
     bool hasError = false;
 
@@ -78,10 +91,12 @@ class _LoginState extends State<Login> {
     if (hasError) return;
     setState(() => status = true);
 
-    // await Future.delayed(const Duration(seconds: 2));
+    print('5400 -=-=-=>>> uid-$uid, pass-$pass, unit-$unit');
+
     String loginResponse = await AuthController().login(uid, pass, unit);
     setState(() => status = false);
     if (loginResponse == 'Valid') {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Login Successful!"),
@@ -91,8 +106,9 @@ class _LoginState extends State<Login> {
       );
       Navigator.of(
         context,
-      ).push(MaterialPageRoute(builder: (context) => HomeScreen()));
+      ).push(MaterialPageRoute(builder: (context) => const HomeScreen()));
     } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Login Error, please try again!"),
@@ -106,162 +122,223 @@ class _LoginState extends State<Login> {
   @override
   Widget build(BuildContext context) {
     const accent = Color(0xFFd0149d);
-
+    // Responsive behavior: center card on wide screens
     return Scaffold(
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            child: Column(
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // breakpoints: mobile: <600, tablet: 600-1024, desktop: >1024
+            final maxW = constraints.maxWidth;
+            final bool isDesktop = maxW >= 1024;
+            final bool isTablet = maxW >= 600 && maxW < 1024;
+            final double cardMaxWidth = isDesktop
+                ? 700
+                : (isTablet ? 540 : double.infinity);
+            final horizontalPadding = isDesktop ? 48.0 : 20.0;
+
+            return Stack(
               children: [
-                const Welcome(),
-                const SizedBox(height: 12),
-
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 20.0,
-                      horizontal: 16.0,
+                SingleChildScrollView(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: horizontalPadding,
+                      vertical: 24,
                     ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: accent),
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.03),
-                          blurRadius: 6,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const Text(
-                          'Login',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: cardMaxWidth),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            // Top welcome widget (keeps original welcome)
+                            const Welcome(),
+                            const SizedBox(height: 12),
 
-                        const SizedBox(height: 18),
-
-                        /// EMPLOYEE ID
-                        AppTextField(
-                          label: "Employee Id",
-                          controller: _userIdController,
-                          keyboardType: TextInputType.number,
-                          hint: "Employee Id",
-                          errorText: userIdError,
-                        ),
-                        const SizedBox(height: 12),
-
-                        /// PASSWORD + SHOW/HIDE
-                        AppTextField(
-                          label: "Password",
-                          controller: _passController,
-                          hint: "Password",
-                          obscure: obscureText,
-                          errorText: passwordError,
-                          showToggle: true,
-                          onToggle: () {
-                            setState(() => obscureText = !obscureText);
-                          },
-                        ),
-                        const SizedBox(height: 12),
-
-                        /// UNIT DROPDOWN
-                        const Text(
-                          'Unit',
-                          style: TextStyle(color: Colors.black54),
-                        ),
-                        const SizedBox(height: 6),
-
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: accent),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: DropdownButtonFormField<String>(
-                            value: _selectedUnit,
-                            decoration: const InputDecoration(
-                              border: InputBorder.none,
-                            ),
-                            items: units
-                                .map(
-                                  (u) => DropdownMenuItem(
-                                    value: u,
-                                    child: Text(u),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (v) {
-                              setState(() {
-                                _selectedUnit = v;
-                                _userUnitController.text = v ?? "";
-                                unitError = null;
-                              });
-                            },
-                          ),
-                        ),
-
-                        if (unitError != null)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Text(
-                              unitError!,
-                              style: const TextStyle(
-                                color: Colors.red,
-                                fontSize: 12,
+                            // Card container that holds the form
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 20.0,
+                                horizontal: 16.0,
                               ),
-                            ),
-                          ),
-
-                        const SizedBox(height: 20),
-
-                        /// LOGIN BUTTON
-                        SizedBox(
-                          height: 48,
-                          child: ElevatedButton(
-                            onPressed: _onLoginPressed,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: accent,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: const Text(
-                              'Login',
-                              style: TextStyle(
-                                fontSize: 16,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: accent),
                                 color: Colors.white,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.03),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  const Text(
+                                    'Login',
+                                    style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 18),
+
+                                  /// EMPLOYEE ID
+                                  AppTextField(
+                                    label: "Employee Id",
+                                    controller: _userIdController,
+                                    keyboardType: TextInputType.number,
+                                    hint: "Employee Id",
+                                    errorText: userIdError,
+                                  ),
+                                  const SizedBox(height: 12),
+
+                                  /// PASSWORD + SHOW/HIDE
+                                  AppTextField(
+                                    label: "Password",
+                                    controller: _passController,
+                                    hint: "Password",
+                                    obscure: obscureText,
+                                    errorText: passwordError,
+                                    showToggle: true,
+                                    onToggle: () {
+                                      setState(
+                                        () => obscureText = !obscureText,
+                                      );
+                                    },
+                                  ),
+                                  const SizedBox(height: 12),
+
+                                  /// UNIT DROPDOWN
+                                  const Text(
+                                    'Unit',
+                                    style: TextStyle(color: Colors.black54),
+                                  ),
+                                  const SizedBox(height: 6),
+
+                                  // Make dropdown expand full width and responsive
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: accent),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: DropdownButtonFormField<String>(
+                                      value: _selectedUnit,
+                                      decoration: const InputDecoration(
+                                        border: InputBorder.none,
+                                        isDense: true,
+                                        contentPadding: EdgeInsets.symmetric(
+                                          vertical: 12,
+                                          horizontal: 0,
+                                        ),
+                                      ),
+                                      items: units
+                                          .map(
+                                            (u) => DropdownMenuItem(
+                                              value: u,
+                                              child: Text(
+                                                u,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          )
+                                          .toList(),
+                                      onChanged: (v) {
+                                        final Map<String, String> unitMap = {
+                                          'KTN - Tennur': 'Trichy - Tennur',
+                                          'KCN - Cantonment':
+                                              'Trichy - Cantonment',
+                                          'KHC - Heartcity':
+                                              'Trichy - Heart City',
+                                          'KCH - Chennai Alwarpet':
+                                              'Chennai - Alwarpet',
+                                          'KHO - Hosur': 'Hosur',
+                                          'KHS - Salem': 'Salem',
+                                          'KTV - Tirunelveli': 'Tirunelveli',
+                                          'KVP - Vadapalani': 'Vadapalani',
+                                          'KMA - Maa Kauvery':
+                                              'Trichy - Maa Kauvery',
+                                        };
+
+                                        setState(() {
+                                          _selectedUnit = v;
+
+                                          // ✅ Convert to full name here
+                                          _userUnitController.text =
+                                              unitMap[v] ?? v!;
+
+                                          unitError = null;
+                                        });
+                                      },
+                                    ),
+                                  ),
+
+                                  if (unitError != null)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 4),
+                                      child: Text(
+                                        unitError!,
+                                        style: const TextStyle(
+                                          color: Colors.red,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+
+                                  const SizedBox(height: 20),
+
+                                  /// LOGIN BUTTON (full width on mobile, centered on wide)
+                                  SizedBox(
+                                    height: 48,
+                                    child: ElevatedButton(
+                                      onPressed: _onLoginPressed,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: accent,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                      ),
+                                      child: const Text(
+                                        'Login',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ),
+
+                            const SizedBox(height: 40),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
 
-                const SizedBox(height: 40),
+                // loading overlay
+                if (status)
+                  Container(
+                    color: Colors.black.withOpacity(0.5),
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    ),
+                  ),
               ],
-            ),
-          ),
-
-          if (status)
-            Container(
-              color: Colors.black.withOpacity(0.5),
-              child: const Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              ),
-            ),
-        ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -299,7 +376,6 @@ class AppTextField extends StatelessWidget {
       children: [
         Text(label, style: const TextStyle(color: Colors.black54)),
         const SizedBox(height: 6),
-
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
@@ -313,9 +389,7 @@ class AppTextField extends StatelessWidget {
               vertical: 12,
               horizontal: 8,
             ),
-
             errorText: errorText,
-
             // borders
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
@@ -333,8 +407,7 @@ class AppTextField extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
               borderSide: const BorderSide(color: AppColors.primaryColor),
             ),
-
-            // 🔥 THE SHOW/HIDE BUTTON INSIDE TEXTFIELD
+            // show/hide icon
             suffixIcon: showToggle
                 ? IconButton(
                     icon: Icon(

@@ -62,97 +62,87 @@ class _PatientDetailsPageState extends State<PatientDetailsPage> {
     final gender = patient?['gender']?.toString() ?? '';
     final attender = patient?['attender_contactno']?.toString() ?? '';
     final ward = patient?['ward']?.toString() ?? '';
+    final doctorName = patient?['primary_doctor']?.toString() ?? '';
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Card(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          color: Colors.white,
-          elevation: 2,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text(
-                  'Patient Details',
-                  style: const TextStyle(fontSize: 20),
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    // Avatar
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundColor: AppColors.primaryColor.withOpacity(0.12),
-                      child: Icon(
-                        Icons.person,
-                        color: Colors.black.withOpacity(0.8),
-                        size: 32,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-
-                    // User Info
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              const Text("👤", style: TextStyle(fontSize: 20)),
-                              const SizedBox(width: 10),
-                              Flexible(
-                                child: Text(
-                                  name,
-                                  style: const TextStyle(
-                                    color: Colors.black87,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              const Text("🆔", style: TextStyle(fontSize: 20)),
-                              const SizedBox(width: 10),
-                              Flexible(
-                                child: Text(
-                                  ipop,
-                                  style: const TextStyle(
-                                    color: Colors.black87,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                infoRow('🏷', 'UHID', uhid),
-                const Divider(),
-                infoRow('📞', 'Mobile', mobile),
-                const Divider(),
-                infoRow('🎂', 'Age', age),
-                const Divider(),
-                infoRow('⚧', 'Gender', gender),
-                const Divider(),
-                infoRow('👨‍👩‍👧', 'Attender Contact', attender),
-                const Divider(),
-                infoRow('🏥', 'Ward', ward),
-              ],
-            ),
-          ),
+        const Text(
+          'Patient Details',
+          style: const TextStyle(fontSize: 20),
         ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            // Avatar
+            CircleAvatar(
+              radius: 30,
+              backgroundColor: AppColors.primaryColor.withOpacity(0.12),
+              child: Icon(
+                Icons.person,
+                color: Colors.black.withOpacity(0.8),
+                size: 32,
+              ),
+            ),
+            const SizedBox(width: 16),
+
+            // User Info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Text("👤", style: TextStyle(fontSize: 20)),
+                      const SizedBox(width: 10),
+                      Flexible(
+                        child: Text(
+                          name,
+                          style: const TextStyle(
+                            color: Colors.black87,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      const Text("🆔", style: TextStyle(fontSize: 20)),
+                      const SizedBox(width: 10),
+                      Flexible(
+                        child: Text(
+                          ipop,
+                          style: const TextStyle(
+                            color: Colors.black87,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        infoRow('🏷', 'UHID', uhid),
+        const Divider(),
+        infoRow('📞', 'Mobile', mobile),
+        const Divider(),
+        infoRow('🎂', 'Age', age),
+        const Divider(),
+        infoRow('⚧', 'Gender', gender),
+        const Divider(),
+        infoRow('👨‍👩‍👧', 'Attender Contact', attender),
+        const Divider(),
+        infoRow('🏥', 'Ward', ward),
+        const Divider(),
+        infoRow('👨‍⚕️', 'Doctor Name', doctorName),
+
       ],
     );
   }

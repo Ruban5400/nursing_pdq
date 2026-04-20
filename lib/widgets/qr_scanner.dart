@@ -4,9 +4,8 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 
 class QRScannerPage extends StatefulWidget {
-  final Function(String) onScanComplete;
 
-  const QRScannerPage({Key? key, required this.onScanComplete})
+  const QRScannerPage({Key? key,})
       : super(key: key);
 
   @override
@@ -46,21 +45,28 @@ class _QRScannerPageState extends State<QRScannerPage>
         children: [
           MobileScanner(
             controller: scannerController,
-            onDetect: (BarcodeCapture capture) async {
-              if (isScanned) return;
-              final List<Barcode> barcodes = capture.barcodes;
-              for (final barcode in barcodes) {
-                final String? code = barcode.rawValue;
-                if (code != null) {
-                  isScanned = true;
-                  scannerController.stop();
-                  _flutterBeepPlusPlugin.playSysSound(AndroidSoundID.TONE_CDMA_ABBR_ALERT);
-                  Navigator.pop(context);
-                  Future.microtask(() => widget.onScanComplete(code));
-                  break;
+              onDetect: (BarcodeCapture capture) async {
+                if (isScanned) return;
+
+                final barcodes = capture.barcodes;
+                for (final barcode in barcodes) {
+                  final code = barcode.rawValue;
+                  if (code != null) {
+                    isScanned = true;
+
+                    await scannerController.stop();
+                    await Future.delayed(const Duration(milliseconds: 200));
+
+                    _flutterBeepPlusPlugin
+                        .playSysSound(AndroidSoundID.TONE_CDMA_ABBR_ALERT);
+
+                    if (!mounted) return;
+
+                    Navigator.pop(context, code); // ✅ RETURN VALUE HERE
+                    break;
+                  }
                 }
               }
-            },
           ),
 
           // Scan overlay box
